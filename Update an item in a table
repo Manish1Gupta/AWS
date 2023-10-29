@@ -1,0 +1,143 @@
+The following code example shows how to update an item in a DynamoDB table.
+
+SDK for Python (Boto3)
+.Update an item by using an update expression.
+....................................................
+...................................................
+class Movies:
+    """Encapsulates an Amazon DynamoDB table of movie data."""
+
+    def __init__(self, dyn_resource):
+        """
+        :param dyn_resource: A Boto3 DynamoDB resource.
+        """
+        self.dyn_resource = dyn_resource
+        # The table variable is set during the scenario in the call to
+        # 'exists' if the table exists. Otherwise, it is set by 'create_table'.
+        self.table = None
+
+
+    def update_movie(self, title, year, rating, plot):
+        """
+        Updates rating and plot data for a movie in the table.
+
+        :param title: The title of the movie to update.
+        :param year: The release year of the movie to update.
+        :param rating: The updated rating to the give the movie.
+        :param plot: The updated plot summary to give the movie.
+        :return: The fields that were updated, with their new values.
+        """
+        try:
+            response = self.table.update_item(
+                Key={"year": year, "title": title},
+                UpdateExpression="set info.rating=:r, info.plot=:p",
+                ExpressionAttributeValues={":r": Decimal(str(rating)), ":p": plot},
+                ReturnValues="UPDATED_NEW",
+            )
+        except ClientError as err:
+            logger.error(
+                "Couldn't update movie %s in table %s. Here's why: %s: %s",
+                title,
+                self.table.name,
+                err.response["Error"]["Code"],
+                err.response["Error"]["Message"],
+            )
+            raise
+        else:
+            return response["Attributes"]
+...........
+...........
+ Update an item by using an update expression that includes an arithmetic operation.
+.......................
+....................
+class UpdateQueryWrapper:
+    def __init__(self, table):
+        self.table = table
+
+
+    def update_rating(self, title, year, rating_change):
+        """
+        Updates the quality rating of a movie in the table by using an arithmetic
+        operation in the update expression. By specifying an arithmetic operation,
+        you can adjust a value in a single request, rather than first getting its
+        value and then setting its new value.
+
+        :param title: The title of the movie to update.
+        :param year: The release year of the movie to update.
+        :param rating_change: The amount to add to the current rating for the movie.
+        :return: The updated rating.
+        """
+        try:
+            response = self.table.update_item(
+                Key={"year": year, "title": title},
+                UpdateExpression="set info.rating = info.rating + :val",
+                ExpressionAttributeValues={":val": Decimal(str(rating_change))},
+                ReturnValues="UPDATED_NEW",
+            )
+        except ClientError as err:
+            logger.error(
+                "Couldn't update movie %s in table %s. Here's why: %s: %s",
+                title,
+                self.table.name,
+                err.response["Error"]["Code"],
+                err.response["Error"]["Message"],
+            )
+            raise
+        else:
+            return response["Attributes"]
+
+
+.............................
+......................
+.....................
+Update an item only when it meets certain conditions.
+..........
+.......
+..
+.
+class UpdateQueryWrapper:
+    def __init__(self, table):
+        self.table = table
+
+
+    def remove_actors(self, title, year, actor_threshold):
+        """
+        Removes an actor from a movie, but only when the number of actors is greater
+        than a specified threshold. If the movie does not list more than the threshold,
+        no actors are removed.
+
+        :param title: The title of the movie to update.
+        :param year: The release year of the movie to update.
+        :param actor_threshold: The threshold of actors to check.
+        :return: The movie data after the update.
+        """
+        try:
+            response = self.table.update_item(
+                Key={"year": year, "title": title},
+                UpdateExpression="remove info.actors[0]",
+                ConditionExpression="size(info.actors) > :num",
+                ExpressionAttributeValues={":num": actor_threshold},
+                ReturnValues="ALL_NEW",
+            )
+        except ClientError as err:
+            if err.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                logger.warning(
+                    "Didn't update %s because it has fewer than %s actors.",
+                    title,
+                    actor_threshold + 1,
+                )
+            else:
+                logger.error(
+                    "Couldn't update movie %s. Here's why: %s: %s",
+                    title,
+                    err.response["Error"]["Code"],
+                    err.response["Error"]["Message"],
+                )
+            raise
+        else:
+            return response["Attributes"]
+
+
+For API details, see UpdateItem in AWS SDK for Python (Boto3) API Reference.
+
+Update an item by using an update expression that includes an arithmetic operation.
