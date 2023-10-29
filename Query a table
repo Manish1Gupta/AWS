@@ -1,0 +1,87 @@
+The following code example shows how to query a DynamoDB table.
+
+SDK for Python (Boto3)
+......................................
+......................................
+
+class Movies:
+    """Encapsulates an Amazon DynamoDB table of movie data."""
+
+    def __init__(self, dyn_resource):
+        """
+        :param dyn_resource: A Boto3 DynamoDB resource.
+        """
+        self.dyn_resource = dyn_resource
+        # The table variable is set during the scenario in the call to
+        # 'exists' if the table exists. Otherwise, it is set by 'create_table'.
+        self.table = None
+
+
+    def query_movies(self, year):
+        """
+        Queries for movies that were released in the specified year.
+
+        :param year: The year to query.
+        :return: The list of movies that were released in the specified year.
+        """
+        try:
+            response = self.table.query(KeyConditionExpression=Key("year").eq(year))
+        except ClientError as err:
+            logger.error(
+                "Couldn't query for movies released in %s. Here's why: %s: %s",
+                year,
+                err.response["Error"]["Code"],
+                err.response["Error"]["Message"],
+            )
+            raise
+        else:
+            return response["Items"]
+
+
+. Query items and project them to return a subset of data.
+
+class UpdateQueryWrapper:
+    def __init__(self, table):
+        self.table = table
+
+
+    def query_and_project_movies(self, year, title_bounds):
+        """
+        Query for movies that were released in a specified year and that have titles
+        that start within a range of letters. A projection expression is used
+        to return a subset of data for each movie.
+
+        :param year: The release year to query.
+        :param title_bounds: The range of starting letters to query.
+        :return: The list of movies.
+        """
+        try:
+            response = self.table.query(
+                ProjectionExpression="#yr, title, info.genres, info.actors[0]",
+                ExpressionAttributeNames={"#yr": "year"},
+                KeyConditionExpression=(
+                    Key("year").eq(year)
+                    & Key("title").between(
+                        title_bounds["first"], title_bounds["second"]
+                    )
+                ),
+            )
+        except ClientError as err:
+            if err.response["Error"]["Code"] == "ValidationException":
+                logger.warning(
+                    "There's a validation error. Here's the message: %s: %s",
+                    err.response["Error"]["Code"],
+                    err.response["Error"]["Message"],
+                )
+            else:
+                logger.error(
+                    "Couldn't query for movies. Here's why: %s: %s",
+                    err.response["Error"]["Code"],
+                    err.response["Error"]["Message"],
+                )
+                raise
+        else:
+            return response["Items"]
+
+
+ .For API details, see Query in AWS SDK for Python (Boto3) API Reference.
