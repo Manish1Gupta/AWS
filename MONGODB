@@ -1,0 +1,157 @@
+link: https://www.analyticsvidhya.com/blog/2022/05/working-with-dynamodb-in-python-using-boto3/
+Introduction
+In this article, we are going to talk about a dynamo DB a No-SQL, 
+and a very highly scalable database provided by Amazon AWS.
+DynamoDB is a scalable hosted NoSQL database service that offers low latency and key-value pair databases. 
+It is also considered a replacement for MongoDB for various Enterprises.
+DynamoDB supports lesser programming languages compared to MongoDB and those are as follows:Java, JavaScript, Python, PHP, NET, etc.
+
+..........................................................................................................................................
+Why DynamoDB?
+There are various aspects in which DynamoDb is much superior to other No-SQL databases.
+
+DynamoDb uses tabes to store the records. The core components are Items and attributes. While MongoDB contained a database and a database includes collections of documents.
+DynamoDB is very easy to deploy since it’s a web service provided by AWS
+DynamoDB is more secure since AWS provides it with security.
+DynamoDB is available free of cost(Free tier) one can store up to 25 GB
+
+...................................................................................................................................................................................
+....................................................................................................................................................................................
+
+Features of DynamoDB
+These are the following features that make DynamoDb popular in the field of No-SQL databases.
+
+It’s a serverless database. No need to worry about managing the resources.
+It stores the data redundantly across multiple availability zones in order to keep latency low and always uptime.
+It supports over 25 million requests per second.
+It encrypts all the data by default.
+Data Backup
+.................................................................................................................................................
+.................................................................................................................................................
+
+Use Cases of DynamoDB
+
+Many Big companies use DynamoDb for their tasks. ie Amazon, Amway, Netflix, Starlink, etc. 
+Since DynamoDB is provided by AWS and it also supports the encryption by default promising the security at its highest level.
+
+DynamoDb is used for :
+.Inventory Tracking
+.Storing User Transactions
+.Fraud Detection
+.In Gaming Technologies etc.
+
+Due to the low latency of DynamoDB and the highly rich infrastructure given by AWS, DynamoDb is widely popular for handling NoSQL databases across various platforms.
+
+.................................................................................................................................................
+.................................................................................................................................................
+
+Creating DynamoDB Table on AWS
+
+Even if you have a free tier of AWS account, you can use DynamoDb and store up to 25GB of data with low latency read and write.
+
+.Search for DynamoDB and open it.
+
+.Create a table by assigning a table name and a key name. We can also create a dynamo DB table using Python boto3 as well.
+
+.Saving the service Credentials
+In order to connect with our AWS resources, we need to have access to our access_key and its secret key.
+
+
+.................................................................................................................................................
+.................................................................................................................................................
+
+Connecting AWS Resources with Python
+
+Connecting AWS resources to the python environment requires a boto3 package.
+
+Installing the Requirement
+
+!pip install boto3
+import boto3
+import os
+import requests
+import tqdm
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Creating dynamoDb client
+Creating a dynamo DB client is a connection instance that lets us connect with our dynamo DB service.
+
+We need to specify region_name, aws_access_key_id, aws_secret_access_key in order to connect with our dynamoDb service.
+
+dynamo_client  =  boto3.resource(service_name = 'dynamodb',region_name = 'us-east-1',
+              aws_access_key_id = 'AKIA3BS5NFXXXXXXX',
+              aws_secret_access_key = 'qfGTJL28HrqcbhKCM0t//xxx7gTGG4iNrv3/d94Lsp')
+List the services by a resource
+
+dynamo_client.get_available_subresources()
+[3]: [Table]
+.................................................................................................................................................
+.................................................................................................................................................
+
+Connecting with our Table
+
+You can also list down all available tables in our dynamo DB service.
+
+### getting the product table
+product_table = dynamo_client.Table('product_table1')
+product_table.table_status
+the table_status return [‘ACTIVE’] if the table has been successfully connected. If not try to check the region of services.
+
+After having the successful connection now let’s populate some data
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Populating the records
+
+Now having a successful connection with our empty dynamo DB table it’s time to create some records using python.
+***************************************************************************************************************
+product_table.put_item(Item = {'product_id':"AV004","Brand":"Lacoste","Price":7800,"Sale":"Online"})
+*********************************************************************************************************************
+put_itemit is used to insert a record into our table
+
+.................................................................................................................................................
+.................................................................................................................................................
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+*************************************************************************************************************************************************
+
+CODE:
+# import boto3
+
+# # Create a Boto3 session
+# session = boto3.Session()
+
+# # Get the current AWS region
+# current_region = 'ap-south-1'
+
+# if current_region:
+#     print(f"Current AWS region: {current_region}")
+# else:
+#     print("AWS region is not set in the Boto3 session.")
+
+import boto3
+
+# Replace 'your_access_key', 'your_secret_key', and 'your_region' with your AWS credentials and region.
+aws_access_key = 'AKIAQT4QVQLX1' #here put your access_key
+aws_secret_key = 'humvtoqrEeHr2lxPaKeYWlK2uAxRkR' #same here put your data
+aws_region = 'eu-north-1'  #same here put your data
+
+# Initialize the DynamoDB client
+dynamodb = boto3.client('dynamodb', region_name=aws_region, aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key)
+
+# Name of the DynamoDB table
+table_name = 'demo-dynamo-python'
+
+# The item you want to insert
+item = {
+    'customer_id': {'S': 'manish'},  # 'S' represents a string attribute
+    'order_id': {'S': 'your_order_id_here'}  # 'S' represents a string attribute
+}
+
+
+# Insert the item into the table
+dynamodb.put_item(TableName=table_name, Item=item)
+
+print("Item 'manish' inserted into the DynamoDB table.")
+
+
+
