@@ -1,0 +1,79 @@
+The following code example shows how to delete an item from a DynamoDB table.
+
+SDK for Python (Boto3)
+
+
+///////////////////////////////////////////////////////////////////////////
+.........................................................................
+class Movies:
+    """Encapsulates an Amazon DynamoDB table of movie data."""
+
+    def __init__(self, dyn_resource):
+        """
+        :param dyn_resource: A Boto3 DynamoDB resource.
+        """
+        self.dyn_resource = dyn_resource
+        # The table variable is set during the scenario in the call to
+        # 'exists' if the table exists. Otherwise, it is set by 'create_table'.
+        self.table = None
+
+
+    def delete_movie(self, title, year):
+        """
+        Deletes a movie from the table.
+
+        :param title: The title of the movie to delete.
+        :param year: The release year of the movie to delete.
+        """
+        try:
+            self.table.delete_item(Key={"year": year, "title": title})
+        except ClientError as err:
+            logger.error(
+                "Couldn't delete movie %s. Here's why: %s: %s",
+                title,
+                err.response["Error"]["Code"],
+                err.response["Error"]["Message"],
+            )
+            raise
+
+    You can specify a condition so that an item is deleted only when it meets certain criteria.
+
+class UpdateQueryWrapper:
+    def __init__(self, table):
+        self.table = table
+
+
+    def delete_underrated_movie(self, title, year, rating):
+        """
+        Deletes a movie only if it is rated below a specified value. By using a
+        condition expression in a delete operation, you can specify that an item is
+        deleted only when it meets certain criteria.
+
+        :param title: The title of the movie to delete.
+        :param year: The release year of the movie to delete.
+        :param rating: The rating threshold to check before deleting the movie.
+        """
+        try:
+            self.table.delete_item(
+                Key={"year": year, "title": title},
+                ConditionExpression="info.rating <= :val",
+                ExpressionAttributeValues={":val": Decimal(str(rating))},
+            )
+        except ClientError as err:
+            if err.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                logger.warning(
+                    "Didn't delete %s because its rating is greater than %s.",
+                    title,
+                    rating,
+                )
+            else:
+                logger.error(
+                    "Couldn't delete movie %s. Here's why: %s: %s",
+                    title,
+                    err.response["Error"]["Code"],
+                    err.response["Error"]["Message"],
+                )
+            raise
+
+
+
