@@ -1,0 +1,42 @@
+DynamoDB examples using SDK for Python (Boto3)
+The following code examples show you how to perform actions and implement common scenarios by using the AWS SDK for Python (Boto3) with DynamoDB.
+
+Actions are code excerpts from larger programs and must be run in context.
+While actions show you how to call individual service functions, you can see actions in context in their related scenarios and cross-service examples.
+
+Scenarios are code examples that show you how to accomplish a specific task by calling multiple functions within the same service.
+
+Each example includes a link to GitHub, where you can find instructions on how to set up and run the code in context.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+................................................................................................................................
+.................................................................................................................................
+
+class Movies:
+    """Encapsulates an Amazon DynamoDB table of movie data."""
+
+    def __init__(self, dyn_resource):
+        """
+        :param dyn_resource: A Boto3 DynamoDB resource.
+        """
+        self.dyn_resource = dyn_resource
+        # The table variable is set during the scenario in the call to
+        # 'exists' if the table exists. Otherwise, it is set by 'create_table'.
+        self.table = None
+
+
+    def delete_table(self):
+        """
+        Deletes the table.
+        """
+        try:
+            self.table.delete()
+            self.table = None
+        except ClientError as err:
+            logger.error(
+                "Couldn't delete table. Here's why: %s: %s",
+                err.response["Error"]["Code"],
+                err.response["Error"]["Message"],
+            )
+            raise
+
+  .For API details, see DeleteTable in AWS SDK for Python (Boto3) API Reference.
